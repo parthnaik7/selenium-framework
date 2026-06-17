@@ -85,9 +85,9 @@ jobs:
 
       - name: Upload JUnit results to GitHub Test Reporting
         if: always()
-        uses: actions/upload-test-report@v1
+        uses: EnricoMi/publish-unit-test-result-action@v2
         with:
-          report_paths: target/surefire-reports/TEST-*.xml
+          files: target/surefire-reports/TEST-*.xml
 
       - name: Upload Allure results
         if: always()
