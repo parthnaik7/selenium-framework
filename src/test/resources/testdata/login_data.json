@@ -1,0 +1,26 @@
+[
+  {
+    "username": "tomsmith",
+    "password": "SuperSecretPassword!",
+    "expectedResult": "success",
+    "description": "Valid admin credentials"
+  },
+  {
+    "username": "invaliduser",
+    "password": "SuperSecretPassword!",
+    "expectedResult": "error",
+    "description": "Invalid username, valid password"
+  },
+  {
+    "username": "tomsmith",
+    "password": "wrongpassword",
+    "expectedResult": "error",
+    "description": "Valid username, invalid password"
+  },
+  {
+    "username": "",
+    "password": "",
+    "expectedResult": "error",
+    "description": "Empty credentials"
+  }
+]

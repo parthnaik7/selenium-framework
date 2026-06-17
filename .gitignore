@@ -1,0 +1,36 @@
+# Build output
+target/
+*.class
+
+# Maven
+.mvn/
+!.mvn/wrapper/
+!.mvn/wrapper/maven-wrapper.properties
+
+# IDE
+.idea/
+*.iml
+.eclipse/
+.classpath
+.project
+.settings/
+*.launch
+.vscode/
+
+# Logs & reports (generated at runtime - not source-controlled)
+target/logs/
+target/screenshots/
+target/allure-results/
+target/allure-report/
+target/extent-report/
+target/surefire-reports/
+
+# Credentials - NEVER commit secrets
+config-prod.properties
+config-staging.properties
+xray-credentials.properties
+.env
+
+# OS
+.DS_Store
+Thumbs.db

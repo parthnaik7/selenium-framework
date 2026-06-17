@@ -1,0 +1,151 @@
+name: Selenium Framework CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      java-version:
+        description: 'JDK version to use for the job'
+        required: true
+        default: '17'
+      browsers:
+        description: 'JSON array of browsers for matrix, example: ["chrome","firefox"]'
+        required: true
+        default: '["chrome"]'
+      headless:
+        description: 'Run browser headless (true/false)'
+        required: true
+        default: 'true'
+      testngSuite:
+        description: 'Path to TestNG suite xml to run'
+        required: true
+        default: 'src/test/resources/testng.xml'
+      mavenArgs:
+        description: 'Additional Maven arguments to append to the mvn command'
+        required: false
+        default: ''
+      skipTests:
+        description: 'If true, Maven will skip running tests'
+        required: false
+        default: 'false'
+
+jobs:
+  test:
+    name: Run tests on ${{ matrix.browser }} (JDK ${{ github.event.inputs.java-version || '17' }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: ${{ fromJson(github.event.inputs.browsers || '["chrome"]') }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ github.event.inputs.java-version || '17' }}
+          cache: 'maven'
+
+      - name: Cache Maven local repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-m2-
+
+      - name: Print environment
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME"
+          echo "Browser matrix value=${{ matrix.browser }}"
+          echo "Headless=${{ github.event.inputs.headless || 'true' }}"
+
+      - name: Run Maven tests
+        env:
+          BROWSER: ${{ matrix.browser }}
+          HEADLESS: ${{ github.event.inputs.headless || 'true' }}
+        run: |
+          set -e
+          mvn -B -e -DskipTests=${{ github.event.inputs.skipTests || 'false' }} test \
+            -Dtestng.suite.file=${{ github.event.inputs.testngSuite || 'src/test/resources/testng.xml' }} \
+            -Dbrowser=${{ matrix.browser }} -Dheadless=${{ github.event.inputs.headless || 'true' }} ${{ github.event.inputs.mavenArgs || '' }}
+
+      - name: Upload Surefire reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports-${{ matrix.browser }}
+          path: target/surefire-reports/**
+
+      - name: Upload JUnit results to GitHub Test Reporting
+        if: always()
+        uses: actions/upload-test-report@v1
+        with:
+          report_paths: target/surefire-reports/TEST-*.xml
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-${{ matrix.browser }}
+          path: target/allure-results/**
+
+      - name: Upload Extent report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: extent-report-${{ matrix.browser }}
+          path: target/extent-report/**
+
+  allure-report:
+    name: Build Allure HTML report
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts from test jobs
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Merge allure-results from artifacts
+        run: |
+          set -e
+          mkdir -p allure-results
+          # Copy any allure-results content from downloaded artifacts into a single directory
+          for d in $(find ./artifacts -maxdepth 2 -type d -name 'allure-results*' -print); do
+            echo "Merging $d"
+            cp -r "$d"/* allure-results/ || true
+          done
+
+      - name: Setup Allure CLI
+        uses: allure-framework/allure-commandline@v2
+        with:
+          version: '2.22.0'
+
+      - name: Generate Allure HTML report
+        run: |
+          set -e
+          if [ -d "allure-results" ] && [ "$(ls -A allure-results)" ]; then
+            allure generate allure-results -o allure-report --clean
+          else
+            echo "No allure-results found; skipping report generation"
+            mkdir -p allure-report
+            echo "No results" > allure-report/README.txt
+          fi
+
+      - name: Upload Allure HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: allure-report/**
+

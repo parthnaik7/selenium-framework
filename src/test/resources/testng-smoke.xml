@@ -1,0 +1,28 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<!--
+    Smoke Test Suite - critical-path only
+    Run: mvn test -Psmoke
+    Or:  mvn test -Dtestng.suite.file=src/test/resources/testng-smoke.xml
+
+    Uses TestNG groups to filter only @Test(groups = {"smoke"}) methods.
+-->
+<suite name="Selenium Framework - Smoke Suite" verbose="1">
+
+    <listeners>
+        <listener class-name="io.qameta.allure.testng.AllureTestNg"/>
+        <listener class-name="com.framework.listeners.TestNGListener"/>
+    </listeners>
+
+    <test name="Smoke Tests">
+        <groups>
+            <run>
+                <include name="smoke"/>
+            </run>
+        </groups>
+        <classes>
+            <class name="com.tests.tests.LoginTest"/>
+        </classes>
+    </test>
+
+</suite>

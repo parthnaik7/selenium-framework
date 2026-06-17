@@ -1,0 +1,42 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<!--
+    TestNG Suite - Full Regression
+    Run: mvn test
+    Or:  mvn test -Dsurefire.suiteXmlFiles=src/test/resources/testng.xml
+-->
+<suite name="Selenium Framework - Full Regression"
+       verbose="1"
+       thread-count="1"
+       data-provider-thread-count="1">
+
+    <!-- ═════════════ Global Listeners ═════════════ -->
+    <listeners>
+        <!-- Allure: auto-attaches steps from @Step annotations (AspectJ) -->
+        <listener class-name="io.qameta.allure.testng.AllureTestNg"/>
+
+        <!-- Custom: screenshot on failure, Extent updates, Xray bridge -->
+        <listener class-name="com.framework.listeners.TestNGListener"/>
+
+        <!-- Retry: apply RetryAnalyzer to every @Test globally -->
+        <listener class-name="com.framework.listeners.RetryTransformer"/>
+    </listeners>
+
+    <!-- ═════════════ Test Groups ═════════════ -->
+    <test name="Login Tests" preserve-order="true">
+        <classes>
+            <class name="com.tests.tests.LoginTest"/>
+        </classes>
+    </test>
+
+    <!--
+        Add more <test> blocks here:
+
+        <test name="Dashboard Tests">
+            <classes>
+                <class name="com.tests.tests.DashboardTest"/>
+            </classes>
+        </test>
+    -->
+
+</suite>

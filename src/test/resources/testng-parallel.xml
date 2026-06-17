@@ -1,0 +1,29 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<!--
+    Parallel Execution Suite
+    Run: mvn test -Pparallel
+    Or:  mvn test -Dtestng.suite.file=src/test/resources/testng-parallel.xml
+
+    thread-count: number of concurrent browser instances.
+    Each thread gets its own WebDriver via ThreadLocal in BaseDriver.
+-->
+<suite name="Selenium Framework - Parallel Execution"
+       verbose="1"
+       parallel="methods"
+       thread-count="4"
+       data-provider-thread-count="2">
+
+    <listeners>
+        <listener class-name="io.qameta.allure.testng.AllureTestNg"/>
+        <listener class-name="com.framework.listeners.TestNGListener"/>
+        <listener class-name="com.framework.listeners.RetryTransformer"/>
+    </listeners>
+
+    <test name="Parallel Login Tests">
+        <classes>
+            <class name="com.tests.tests.LoginTest"/>
+        </classes>
+    </test>
+
+</suite>
