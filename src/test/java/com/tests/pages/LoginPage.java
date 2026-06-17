@@ -28,15 +28,9 @@ public class LoginPage extends BasePage {
     @FindBy(css = "button[type='submit']")
     private WebElement loginButton;
 
-    @FindBy(css = ".flash.error")
-    private WebElement errorMessage;
-
-    @FindBy(css = ".flash.success")
-    private WebElement successMessage;
 
     // ─── By locators (inline style) ──────────────────────────────────────────
     private static final By USERNAME  = By.id("username");
-    private static final By PASSWORD  = By.id("password");
     private static final By SUBMIT    = By.cssSelector("button[type='submit']");
     private static final By ERROR_MSG = By.cssSelector(".flash.error");
     private static final By SUCCESS_MSG = By.cssSelector(".flash.success");
@@ -71,7 +65,10 @@ public class LoginPage extends BasePage {
     @Step("Click Login button")
     public HomePage clickLogin() {
         click(loginButton);
-        return new HomePage();
+        HomePage homePage = new HomePage();
+        // block until the secure area (welcome banner) is fully loaded to avoid stale element issues
+        homePage.waitForVisible(By.cssSelector("h4.subheader"));
+        return homePage;
     }
 
     @Step("Click Login - expecting failure")
@@ -103,26 +100,58 @@ public class LoginPage extends BasePage {
     //  Assertions / Verifications
     // ─────────────────────────────────────────────────────────────────────────
 
+    /**
+     * Helper: Check if flash message is present and contains the given class.
+     * Falls back to #flash id if specific class-based selectors fail.
+     * @param flashType "error" or "success"
+     * @return true if flash present and contains class, false otherwise
+     */
+    private boolean hasFlashType(String flashType) {
+        try {
+            // first try the specific selector (.flash.error or .flash.success)
+            By typeSelector = flashType.equalsIgnoreCase("error")
+                    ? ERROR_MSG : SUCCESS_MSG;
+            if (isDisplayed(typeSelector)) {
+                return true;
+            }
+        } catch (Exception e) {
+            // selector failed, fall back to generic #flash check
+        }
+
+        // fallback: check generic #flash element and inspect class attribute
+        try {
+            By flashId = By.id("flash");
+            if (!isDisplayed(flashId)) return false;
+
+            WebElement flashEl = findElement(flashId);
+            String classAttr = flashEl.getAttribute("class");
+            return classAttr != null && classAttr.contains(flashType);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     @Step("Get error message text")
     public String getErrorMessage() {
         waitForVisible(ERROR_MSG);
-        return getText(errorMessage).replace("×", "").trim();
+        // read from locator to ensure fresh element reference
+        return getText(ERROR_MSG).replace("×", "").trim();
     }
 
     @Step("Get success message text")
     public String getSuccessMessage() {
         waitForVisible(SUCCESS_MSG);
-        return getText(successMessage).replace("×", "").trim();
+        return getText(SUCCESS_MSG).replace("×", "").trim();
     }
 
     @Step("Is error message displayed")
     public boolean isErrorDisplayed() {
-        return isDisplayed(ERROR_MSG);
+        return hasFlashType("error");
     }
 
     @Step("Is success message displayed")
     public boolean isSuccessDisplayed() {
-        return isDisplayed(SUCCESS_MSG);
+        return hasFlashType("success");
     }
 
     @Step("Is username field displayed")

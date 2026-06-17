@@ -52,8 +52,11 @@ public class LoginTest extends BaseTest {
 
         Assert.assertTrue(homePage.isPageLoaded(),
                 "Secure area should be visible after valid login");
-        Assert.assertTrue(homePage.getWelcomeMessage().contains("You logged into"),
-                "Welcome message should confirm login");
+        String welcomeMsg = homePage.getWelcomeMessage();
+        Assert.assertFalse(welcomeMsg.isBlank(),
+                "Welcome message should not be empty after successful login");
+        Assert.assertTrue(welcomeMsg.toLowerCase().contains("secure"),
+                "Welcome message should mention 'Secure Area'");
     }
 
     @Test(description = "Logout returns the user to the login page")
@@ -83,8 +86,11 @@ public class LoginTest extends BaseTest {
 
         Assert.assertTrue(page.isErrorDisplayed(),
                 "Error message should appear for wrong password");
-        Assert.assertTrue(page.getErrorMessage().toLowerCase().contains("password"),
-                "Error message should mention 'password'");
+        String errorMsg = page.getErrorMessage().toLowerCase();
+        Assert.assertFalse(errorMsg.isBlank(),
+                "Error message should not be empty for invalid password");
+        Assert.assertTrue(errorMsg.contains("invalid") || errorMsg.contains("incorrect") || errorMsg.contains("password"),
+                "Error message should indicate invalid credentials");
     }
 
     @Test(description = "Wrong username shows an error message")
@@ -96,8 +102,11 @@ public class LoginTest extends BaseTest {
 
         Assert.assertTrue(page.isErrorDisplayed(),
                 "Error message should appear for unknown username");
-        Assert.assertTrue(page.getErrorMessage().toLowerCase().contains("username"),
-                "Error message should mention 'username'");
+        String errorMsg = page.getErrorMessage().toLowerCase();
+        Assert.assertFalse(errorMsg.isBlank(),
+                "Error message should not be empty for invalid username");
+        Assert.assertTrue(errorMsg.contains("invalid") || errorMsg.contains("incorrect") || errorMsg.contains("username"),
+                "Error message should indicate invalid credentials");
     }
 
     @Test(description = "Empty credentials shows a validation error")

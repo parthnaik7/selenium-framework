@@ -4,8 +4,6 @@ import com.framework.base.BasePage;
 import com.framework.utils.TableUtils;
 import io.qameta.allure.Step;
 import org.openqa.selenium.By;
-import org.openqa.selenium.support.FindBy;
-import org.openqa.selenium.WebElement;
 
 import java.util.List;
 import java.util.Map;
@@ -17,12 +15,7 @@ import java.util.Map;
  */
 public class HomePage extends BasePage {
 
-    @FindBy(css = "h4.subheader")
-    private WebElement welcomeBanner;
-
-    @FindBy(linkText = "Logout")
-    private WebElement logoutLink;
-
+    // use locator-based access for dynamic elements to avoid stale proxies
     private static final By WELCOME_BANNER = By.cssSelector("h4.subheader");
     private static final By LOGOUT_LINK    = By.linkText("Logout");
     private static final By FLASH_MESSAGE  = By.id("flash");
@@ -45,12 +38,13 @@ public class HomePage extends BasePage {
 
     @Step("Get welcome message")
     public String getWelcomeMessage() {
-        return getText(welcomeBanner);
+        // read via locator to ensure fresh reference after navigation
+        return getText(WELCOME_BANNER);
     }
 
     @Step("Logout")
     public LoginPage logout() {
-        click(logoutLink);
+        click(LOGOUT_LINK);
         return new LoginPage();
     }
 

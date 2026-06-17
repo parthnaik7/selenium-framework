@@ -32,6 +32,11 @@ on:
         required: false
         default: 'false'
 
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
 jobs:
   test:
     name: Run tests on ${{ matrix.browser }} (JDK ${{ github.event.inputs.java-version || '17' }})
