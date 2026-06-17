@@ -132,9 +132,12 @@ jobs:
           done
 
       - name: Setup Allure CLI
-        uses: allure-framework/allure-commandline@v2
-        with:
-          version: '2.22.0'
+        run: |
+          wget https://github.com/allure-framework/allure2/releases/download/2.22.0/allure-2.22.0.tgz
+          tar -xzf allure-2.22.0.tgz
+          sudo mv allure-2.22.0 /opt/allure
+          sudo ln -s /opt/allure/bin/allure /usr/bin/allure
+          allure --version
 
       - name: Generate Allure HTML report
         run: |
